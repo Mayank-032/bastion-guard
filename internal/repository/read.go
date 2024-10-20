@@ -2,16 +2,16 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/Mayank-032/bastion-guard/internal/domain"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type readUser struct {
-	DB *sql.DB
+	DB *mongo.Client
 }
 
-func NewReadUserRepository(db *sql.DB) ReadUser {
+func NewReadUserRepository(db *mongo.Client) ReadUser {
 	return &readUser{
 		DB: db,
 	}

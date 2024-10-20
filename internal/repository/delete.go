@@ -2,14 +2,15 @@ package repository
 
 import (
 	"context"
-	"database/sql"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type deleteUser struct {
-	DB *sql.DB
+	DB *mongo.Client
 }
 
-func NewDeleteUserRepository(db *sql.DB) DeleteUser {
+func NewDeleteUserRepository(db *mongo.Client) DeleteUser {
 	return &deleteUser{
 		DB: db,
 	}

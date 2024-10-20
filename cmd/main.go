@@ -18,7 +18,7 @@ import (
 var user usecase.User
 
 // Initialise Infrastructure required run application
-func initializeInfra() {
+func initializeInfra(ctx context.Context) {
 	err := infrastructure.InitConfig()
 	if err != nil {
 		fmt.Println("unable to initialise config")
@@ -27,7 +27,10 @@ func initializeInfra() {
 	}
 	fmt.Println("successfully loaded configs")
 
-	err = infrastructure.InitDB("", "", "")
+	var host = infrastructure.Configurations.Database.Host
+	var port = infrastructure.Configurations.Database.Port
+	var schema = infrastructure.Configurations.Database.Schema
+	err = infrastructure.InitDB(ctx, host, port, schema)
 	if err != nil {
 		fmt.Println("unable to initialise DB")
 		os.Exit(1)
@@ -35,15 +38,16 @@ func initializeInfra() {
 	}
 	fmt.Println("successfully loaded data store")
 
-	var readRepository = repository.NewReadUserRepository(infrastructure.DB)
-	var upsertRepository = repository.NewUpsertUserRepository(infrastructure.DB)
-	var deleteRepository = repository.NewDeleteUserRepository(infrastructure.DB)
+	var readRepository = repository.NewReadUserRepository(infrastructure.MongoDB)
+	var upsertRepository = repository.NewUpsertUserRepository(infrastructure.MongoDB)
+	var deleteRepository = repository.NewDeleteUserRepository(infrastructure.MongoDB)
 
 	user = usecase.NewLoginUsecase(readRepository, upsertRepository, deleteRepository)
 }
 
 func Execute() {
-	initializeInfra()
+	var ctx = context.Background()
+	initializeInfra(ctx)
 
 	// initialise reader instance, which will be used to read the input in terminal
 	var reader = bufio.NewReader(os.Stdin)
@@ -75,6 +79,7 @@ func Execute() {
 			return
 		}
 
+		// basic validations on commands
 		// if no executable command is provided or if provided but is not the default command, return it as error
 		if execCommand == nil || *execCommand != "bastion-guard" {
 			err = errors.New("invalid executable command")
@@ -87,8 +92,6 @@ func Execute() {
 			fmt.Println(err)
 			return
 		}
-
-		var ctx = context.Background()
 
 		isUserCreated, err := user.IsCreated(ctx, *authCredName, *authCredPwd)
 		if err != nil {
@@ -109,8 +112,6 @@ func Execute() {
 					return
 				}
 			}
-			fmt.Println("success...")
-			return
 		case DELETE:
 			if !isUserCreated {
 				fmt.Println("cannot perform this operation. no such user exists")
@@ -122,8 +123,6 @@ func Execute() {
 				fmt.Println("oops, some error occurred. please try again or contact support")
 				return
 			}
-			fmt.Println("success...")
-			return
 		case UPDATE_PASSWORD:
 			authCredNewPwd = fs.String("npwd", "", "New Password of the user")
 
@@ -132,9 +131,9 @@ func Execute() {
 				fmt.Println("oops, some error occurred. please try again or contact support")
 				return
 			}
-			fmt.Println("success...")
-			return
 		}
+
+		fmt.Println("success...")
 	}
 }
 

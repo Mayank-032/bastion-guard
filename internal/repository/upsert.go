@@ -2,16 +2,16 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/Mayank-032/bastion-guard/internal/domain"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type upsertUser struct {
-	DB *sql.DB
+	DB *mongo.Client
 }
 
-func NewUpsertUserRepository(db *sql.DB) UpsertUser {
+func NewUpsertUserRepository(db *mongo.Client) UpsertUser {
 	return &upsertUser{
 		DB: db,
 	}

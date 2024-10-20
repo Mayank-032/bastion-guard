@@ -1,9 +1,27 @@
 package infrastructure
 
-import "database/sql"
+import (
+	"context"
 
-var DB *sql.DB
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
 
-func InitDB(host, port, db string) error {
+var MongoDB *mongo.Client
+
+func InitDB(ctx context.Context, host, port, db string) error {
+	clientOptions := options.Client().ApplyURI("").SetMaxPoolSize(100)
+
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		return err
+	}
+
+	err = client.Ping(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	MongoDB = client
 	return nil
 }
